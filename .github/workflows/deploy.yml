@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    name: Type-check & deploy
+    name: Build & deploy
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -26,7 +26,27 @@ jobs:
       - name: Type-check
         run: npx tsc --noEmit
 
-      - name: Deploy to server via SSH
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+
+      - name: Deploy via rsync
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='.env*'
+          path: ./
+          remote_path: /var/www/taphouse/
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USER }}
+          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Restart app
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -36,7 +56,5 @@ jobs:
           script: |
             set -e
             cd /var/www/taphouse
-            git pull origin main
             npm ci --omit=dev
-            npm run build
-            pm2 reload taphouse --update-env
+            pm2 reload taphouse --update-env || pm2 start ecosystem.config.js
