@@ -1,0 +1,23 @@
+# deps
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# env — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editors
+.vscode/
+*.swp
+
+# PM2 logs
+logs/
+*.log

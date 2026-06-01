@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --brand: #e0913a;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+}
+
+/* Inline-edit selection ring */
+.ed-selectable {
+  @apply cursor-pointer transition-all;
+}
+.ed-selectable:hover {
+  outline: 2px dashed rgba(224, 145, 58, 0.5);
+  outline-offset: 2px;
+}
+.ed-selectable.ed-selected {
+  outline: 2px dashed #e0913a;
+  outline-offset: 2px;
+}
+
+/* Menu item leader dots */
+.mi-dots {
+  flex: 1;
+  border-bottom: 1px dotted currentColor;
+  margin: 0 6px;
+  margin-bottom: 4px;
+  opacity: 0.3;
+}
+
+/* DnD drag ghost */
+.dnd-ghost {
+  opacity: 0.4;
+}

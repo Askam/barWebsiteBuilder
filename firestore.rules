@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /sites/{siteId} {
+      // Anyone can read (editor loads drafts, public routes load live sites)
+      allow read: if true;
+
+      // Only the owner can create — ownerId must match the auth uid being set
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.ownerId;
+
+      // Only the existing owner can update or delete
+      allow update, delete: if request.auth != null
+        && request.auth.uid == resource.data.ownerId;
+    }
+  }
+}
