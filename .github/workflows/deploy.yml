@@ -29,15 +29,20 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
       - name: Deploy via rsync
-        uses: burnett01/rsync-deployments@7.0.1
-        with:
-          switches: -avz --delete --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='.env*'
-          path: ./
-          remote_path: /var/www/taphouse/
-          remote_host: ${{ secrets.SSH_HOST }}
-          remote_user: ${{ secrets.SSH_USER }}
-          remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          rsync -avz --delete \
+            --exclude='.git' --exclude='.github' \
+            --exclude='node_modules' --exclude='.env.local' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/taphouse/
 
       - name: Restart app
         uses: appleboy/ssh-action@v1.0.3
