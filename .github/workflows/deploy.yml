@@ -40,14 +40,13 @@ jobs:
           remote_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Restart app
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
           script: |
-            set -e
             cd /var/www/taphouse
             npm ci --omit=dev
             pm2 reload taphouse --update-env || pm2 start ecosystem.config.js
+            pm2 save
